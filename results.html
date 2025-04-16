@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Results - Riddle Challenge</title>
+    <style>
+        body { font-family: 'Poppins', sans-serif; text-align: center; background: linear-gradient(135deg, #1e1e2e, #3a3a6b); color: white; padding: 20px; }
+        .container { width: 600px; margin: auto; padding: 20px; background: rgba(41, 41, 69, 0.9); border-radius: 15px; box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2); }
+        .btn { padding: 15px; width: 100%; margin-top: 10px; border: none; cursor: pointer; font-size: 16px; border-radius: 8px; transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out; }
+        .btn:hover { transform: scale(1.08); box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3); }
+        .play-again { background: #51cf66; color: white; }
+        .home-btn { background: #ff6b6b; color: white; }
+        .results-table { width: 100%; margin-top: 20px; border-collapse: collapse; }
+        .results-table th, .results-table td { padding: 10px; border: 1px solid white; text-align: center; }
+        .correct { color: #51cf66; font-weight: bold; }
+        .wrong { color: #ff6b6b; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Game Over!</h1>
+        <h2>Your Results</h2>
+        <table class="results-table">
+            <thead>
+                <tr>
+                    <th>Riddle</th>
+                    <th>Your Answer</th>
+                    <th>Correct Answer</th>
+                    <th>Result</th>
+                </tr>
+            </thead>
+            <tbody id="results-body"></tbody>
+        </table>
+        <button class="btn play-again" onclick="restartGame()">Play Again</button>
+        <button class="btn home-btn" onclick="location.href='index.html'">Back to Home</button>
+    </div>
+    
+    <script>
+        function loadResults() {
+            let userResponses = JSON.parse(localStorage.getItem("userResponses")) || [];
+            let resultsBody = document.getElementById("results-body");
+            resultsBody.innerHTML = "";
+            
+            userResponses.forEach(response => {
+                let row = `<tr>
+                    <td>${response.question}</td>
+                    <td>${response.userAnswer}</td>
+                    <td>${response.correctAnswer}</td>
+                    <td class="${response.result}">${response.result === "correct" ? "✅" : "❌"}</td>
+                </tr>`;
+                resultsBody.innerHTML += row;
+            });
+        }
+
+        function restartGame() {
+            localStorage.removeItem("userResponses");
+            location.href = 'riddle.html';
+        }
+        
+        window.onload = loadResults;
+    </script>
+</body>
+</html>

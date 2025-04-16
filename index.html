@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Riddle Challenge</title>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            text-align: center;
+            background: radial-gradient(circle, rgba(0,0,50,1) 10%, rgba(0,0,20,1) 80%);
+            color: white;
+            padding: 20px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            position: relative;
+        }
+
+        .container {
+            width: 400px;
+            padding: 20px;
+            background: rgba(41, 41, 69, 0.9);
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2);
+            position: relative;
+            z-index: 1;
+        }
+
+        .btn {
+            padding: 15px;
+            width: 100%;
+            margin-top: 10px;
+            border: none;
+            cursor: pointer;
+            font-size: 16px;
+            border-radius: 8px;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+        .btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0px 0px 10px rgba(255, 255, 255, 0.3);
+        }
+
+        .start-btn {
+            background: #5caa03;
+            color: rgb(251, 251, 251);
+        }
+
+        .popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(51, 51, 93, 0.9);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            display: none;
+            z-index: 2;
+            box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.3);
+        }
+
+        .popup input {
+            margin: 10px;
+            padding: 8px;
+            width: 90%;
+            border-radius: 5px;
+            border: none;
+        }
+
+        .popup button {
+            padding: 10px;
+            background: #4dabf7;
+            color: white;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        .floating-objects {
+            position: absolute;
+            width: 100%;
+            height: 100vh;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        .floating-objects div {
+            position: absolute;
+            font-size: 40px;
+            opacity: 0.7;
+            animation: floatUp 6s infinite ease-in-out;
+            color: rgba(255, 255, 255, 0.7);
+            text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+            50% { opacity: 1; }
+            100% { transform: translateY(-50vh) scale(1.5); opacity: 0; }
+        }
+
+        .glow {
+            text-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 20px #00f, 0 0 30px #00f;
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-objects"></div>
+
+    <div class="popup" id="userPopup">
+        <h2>Welcome to Riddle Challenge!</h2>
+        <p>Enter your details to get started.</p>
+        <input type="text" id="username" placeholder="Enter your name">
+        <input type="date" id="dob">
+        <button onclick="saveUserDetails()">Submit</button>
+    </div>
+
+    <div class="container">
+        <h1 class="glow">RIDDLE MASTER!</h1>
+        <h1 style="color: gold;">Welcome, <span id="displayName">Player</span>!</h1>
+
+        <!-- Buttons Section -->
+        <button class="btn start-btn" onclick="location.href='riddle.html'">Riddle Game</button>
+        <button class="btn start-btn" onclick="location.href='jumbled.html'">Jumbled Word Game</button>
+        <button class="btn start-btn" onclick="location.href='sudoku-game.html'">Sudoku Game</button>
+    </div>
+
+    <script>
+        // Floating symbols
+        const symbols = ["❓", "💡", "🧩", "🤯", "🎭"];
+        for (let i = 0; i < 15; i++) {
+            let symbol = document.createElement("div");
+            symbol.innerText = symbols[Math.floor(Math.random() * symbols.length)];
+            symbol.style.left = Math.random() * 100 + "vw";
+            symbol.style.animationDuration = (Math.random() * 5 + 5) + "s";
+            document.querySelector(".floating-objects").appendChild(symbol);
+        }
+
+        function saveUserDetails() {
+            let name = document.getElementById("username").value;
+            let dob = document.getElementById("dob").value;
+            if (name && dob) {
+                localStorage.setItem("username", name);
+                localStorage.setItem("dob", dob);
+                document.getElementById("userPopup").style.display = "none";
+                document.getElementById("displayName").innerText = name;
+            } else {
+                alert("Please fill in both fields.");
+            }
+        }
+
+        window.onload = function () {
+            let storedName = localStorage.getItem("username");
+            if (storedName) {
+                document.getElementById("displayName").innerText = storedName;
+            } else {
+                document.getElementById("userPopup").style.display = "block";
+            }
+        };
+    </script>
+</body>
+</html>

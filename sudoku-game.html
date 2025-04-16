@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Sudoku Game</title>
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: radial-gradient(circle, rgba(0,0,50,1) 10%, rgba(0,0,20,1) 80%);
+      color: white;
+      margin: 0;
+      height: 100vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      position: relative;
+    }
+
+    .floating-objects {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      overflow: hidden;
+    }
+
+    .floating-objects div {
+      position: absolute;
+      font-size: 40px;
+      opacity: 0.7;
+      animation: floatUp 6s infinite ease-in-out;
+      color: rgba(255, 255, 255, 0.7);
+      text-shadow: 0px 0px 10px rgba(255, 255, 255, 0.8);
+    }
+
+    @keyframes floatUp {
+      0% { transform: translateY(100vh) scale(0.5); opacity: 0; }
+      50% { opacity: 1; }
+      100% { transform: translateY(-50vh) scale(1.5); opacity: 0; }
+    }
+
+    .container {
+      text-align: center;
+      background: rgba(41, 41, 69, 0.9);
+      padding: 30px;
+      border-radius: 15px;
+      z-index: 1;
+      box-shadow: 0px 0px 15px rgba(255, 255, 255, 0.2);
+      width: 100%;
+      max-width: 500px;
+    }
+
+    h1 {
+      color: gold;
+      text-shadow: 0 0 5px #00f, 0 0 10px #00f, 0 0 20px #00f;
+    }
+
+    .board {
+      display: grid;
+      grid-template-columns: repeat(9, 50px);
+      grid-gap: 2px;
+      justify-content: center;
+      margin: 20px 0;
+    }
+
+    input {
+      width: 48px;
+      height: 48px;
+      text-align: center;
+      font-size: 20px;
+      border: 1px solid #ccc;
+      outline: none;
+      background-color: #fff;
+      color: #000;
+    }
+
+    input:disabled {
+      background-color: #d9d9d9;
+      font-weight: bold;
+    }
+
+    button, select {
+      padding: 10px 15px;
+      font-size: 14px;
+      margin: 10px 5px;
+      cursor: pointer;
+      border: none;
+      border-radius: 8px;
+      background: #4dabf7;
+      color: white;
+    }
+
+    .highlight-box {
+      background-color: #fefcd3;
+    }
+
+    .correct {
+      border: 2px solid limegreen;
+    }
+
+    .wrong {
+      border: 2px solid red;
+    }
+
+    #message {
+      margin-top: 15px;
+      font-size: 18px;
+    }
+
+    .back-btn {
+      background-color: #f06292;
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      z-index: 2;
+    }
+
+    .controls {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .controls select,
+    .controls button {
+      margin: 5px;
+    }
+  </style>
+</head>
+<body>
+  <div class="floating-objects"></div>
+
+  <button class="back-btn" onclick="window.location.href='index.html'">← Back to Home</button>
+
+  <div class="container">
+    <h1>SUDOKU CHALLENGE</h1>
+
+    <div class="controls">
+      <label for="difficulty">Select Difficulty:</label>
+      <select id="difficulty" onchange="changeDifficulty()">
+        <option value="easy" selected>Easy</option>
+        <option value="medium">Medium</option>
+        <option value="hard">Hard</option>
+      </select>
+      <button onclick="checkSolution()">Check</button>
+      <button onclick="resetBoard()">Reset</button>
+    </div>
+
+    <div id="sudoku-board" class="board"></div>
+    <div id="message"></div>
+  </div>
+
+  <script>
+    // Floating numbers
+    const numbers = ["1", "2", "3", "4", "5", "6", "7", "8", "9"];
+    for (let i = 0; i < 20; i++) {
+      let num = document.createElement("div");
+      num.innerText = numbers[Math.floor(Math.random() * numbers.length)];
+      num.style.left = Math.random() * 100 + "vw";
+      num.style.animationDuration = (Math.random() * 5 + 4) + "s";
+      document.querySelector(".floating-objects").appendChild(num);
+    }
+
+    const puzzleData = {
+      data: [
+        [2, 6, 9, 5, 8, 1, 3, 4, 7],
+        [1, 3, 4, 9, 6, 7, 2, 8, 5],
+        [7, 8, 5, 4, 3, 2, 6, 9, 1],
+        [8, 2, 1, 3, 4, 5, 7, 6, 9],
+        [4, 9, 7, 2, 1, 6, 5, 3, 8],
+        [6, 5, 3, 7, 9, 8, 1, 2, 4],
+        [5, 7, 8, 6, 2, 4, 9, 1, 3],
+        [9, 4, 2, 1, 7, 3, 8, 5, 6],
+        [3, 1, 6, 8, 5, 9, 4, 7, 2]
+      ],
+      easy: [
+        [0, 6, 9, 5, 0, 1, 3, 4, 0],
+        [0, 0, 4, 9, 0, 7, 2, 0, 5],
+        [0, 8, 0, 4, 3, 2, 6, 9, 0],
+        [8, 2, 1, 3, 4, 0, 7, 0, 0],
+        [4, 9, 7, 2, 1, 6, 5, 3, 8],
+        [6, 5, 3, 7, 9, 0, 1, 2, 0],
+        [5, 7, 8, 6, 2, 4, 0, 0, 3],
+        [9, 0, 2, 1, 0, 0, 0, 0, 6],
+        [0, 1, 6, 8, 0, 9, 4, 7, 0]
+      ],
+      medium: [
+        [2, 0, 0, 5, 8, 0, 0, 4, 7],
+        [1, 3, 0, 9, 0, 7, 0, 0, 5],
+        [0, 0, 0, 0, 0, 0, 0, 9, 1],
+        [0, 2, 0, 0, 4, 0, 7, 0, 0],
+        [0, 0, 0, 2, 1, 6, 5, 3, 0],
+        [6, 5, 3, 7, 9, 0, 1, 0, 4],
+        [0, 0, 0, 0, 0, 0, 9, 0, 3],
+        [0, 0, 0, 0, 0, 0, 0, 5, 6],
+        [3, 0, 0, 0, 0, 9, 4, 7, 2]
+      ],
+      hard: [
+        [0, 0, 0, 5, 0, 0, 0, 0, 0],
+        [0, 3, 0, 0, 0, 7, 0, 0, 5],
+        [0, 8, 0, 0, 0, 0, 0, 0, 0],
+        [0, 0, 0, 0, 0, 0, 0, 6, 9],
+        [0, 0, 0, 0, 1, 6, 0, 0, 0],
+        [6, 0, 0, 0, 0, 0, 0, 2, 0],
+        [0, 0, 0, 6, 0, 0, 0, 0, 0],
+        [9, 4, 0, 0, 0, 0, 0, 5, 0],
+        [0, 0, 6, 0, 5, 0, 4, 7, 0]
+      ]
+    };
+
+    let currentPuzzle = puzzleData.easy;
+    let solution = puzzleData.data;
+
+    function displayPuzzle(puzzle) {
+      const board = document.getElementById("sudoku-board");
+      board.innerHTML = '';
+
+      for (let i = 0; i < 81; i++) {
+        const input = document.createElement("input");
+        const row = Math.floor(i / 9);
+        const col = i % 9;
+        const value = puzzle[row][col];
+
+        input.id = `cell-${i}`;
+        input.maxLength = 1;
+
+        if (value !== 0) {
+          input.value = value;
+          input.disabled = true;
+        } else {
+          input.addEventListener("input", validateInput);
+        }
+
+        if ((Math.floor(row / 3) + Math.floor(col / 3)) % 2 === 0) {
+          input.classList.add("highlight-box");
+        }
+
+        board.appendChild(input);
+      }
+    }
+
+    function validateInput(event) {
+      const value = event.target.value;
+      if (!/^[1-9]$/.test(value)) {
+        event.target.value = '';
+      }
+    }
+
+    function checkSolution() {
+      const board = document.getElementById("sudoku-board");
+      let isValid = true;
+
+      for (let i = 0; i < 81; i++) {
+        const input = board.children[i];
+        const row = Math.floor(i / 9);
+        const col = i % 9;
+
+        if (!input.disabled) {
+          const userValue = parseInt(input.value);
+          if (userValue === solution[row][col]) {
+            input.classList.add("correct");
+            input.classList.remove("wrong");
+          } else {
+            input.classList.add("wrong");
+            input.classList.remove("correct");
+            isValid = false;
+          }
+        }
+      }
+
+      const msg = document.getElementById("message");
+      msg.textContent = isValid ? "🎉 Correct! Puzzle Solved." : "❌ Incorrect. Try again!";
+      msg.style.color = isValid ? "limegreen" : "red";
+    }
+
+    function resetBoard() {
+      displayPuzzle(currentPuzzle);
+    }
+
+    function changeDifficulty() {
+      const level = document.getElementById("difficulty").value;
+      currentPuzzle = puzzleData[level];
+      displayPuzzle(currentPuzzle);
+    }
+
+    window.onload = function() {
+      displayPuzzle(currentPuzzle);
+    };
+  </script>
+</body>
+</html>
